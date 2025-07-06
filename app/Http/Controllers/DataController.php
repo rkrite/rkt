@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class DataController extends Controller
 {
@@ -69,13 +70,26 @@ class DataController extends Controller
                 $vNewData .= "     <name>VBox Data Conversion</name>\n";
                 $vNewData .= "     <trkseg>\n";
 
-                // foreach ($vDataArray as $vDataString) {
-                for ($i=0; $i < 10; $i++) {
-                    $vDataRow = explode(" ", $vDataArray[$i]);
+                foreach ($vDataArray as $vDataString) {
+                // for ($i=0; $i < 1000; $i++) {
+                    $vDataRow = explode(" ", $vDataString);
+if (empty($vDataRow[2])){
+    break;
+}
                     // lat lon
                     $vLat = $vDataRow[2];
+// dd($vDataRow);
+                    $vLat_deg = substr($vLat, 0, 4);
+                    $vLat_min = substr($vLat, 4);
+                    $vLat = $vLat_deg + ($vLat_min / 60);
+
                     $vLon = $vDataRow[3];
-                    $vNewDataRow = "<trkpt lat=\"" . $vLat . "\" lon=\"" . $vDataRow[3] . "\">\n";
+                    $vLon_deg = substr($vLon, 0, 4);
+                    $vLon_min = substr($vLon, 4);
+                    $vLon = $vLon_deg + ($vLon_min / 60);
+// dd($vLat . ',' . $vLon);
+// dd($vLat_deg);
+                    $vNewDataRow = "<trkpt lat=\"" . $vLat . "\" lon=\"" . $vLon . "\">\n";
 
                     // Sat
                     $vNewDataRow .= "   <sat>" . (int)$vDataRow[0] . "</sat>" . "\n";
@@ -114,8 +128,14 @@ class DataController extends Controller
 
                 break;
         }
+// dd(strlen($vNewData));
+        $vNewFileName = 'converted-' . strtolower(Str::random(5)) . '.gpx';
 
-        return view('data.show')->with('newdata', $vNewData);
+        return response()->streamDownload(function () use ($vNewData) {
+            echo $vNewData;
+        }, $vNewFileName);
+
+        // return view('data.show')->with('newdata', $vNewData);
 
     }
 
