@@ -115,8 +115,6 @@ class DataController extends Controller
                 break;
         }
 
-// dump($vNewData);
-// dd('count ' . $i);
         return view('data.show')->with('newdata', $vNewData);
 
     }
