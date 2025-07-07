@@ -79,61 +79,63 @@ class DataController extends Controller
 
                         // lat
                         $vLat = $vDataRow[2];
-                        $vLatSign = substr($vLat, 0,1);
-                        $vLat = substr($vLat, 1) / 60;
-                        $vLat_Parts = explode(".", $vLat);
-                        $vLat_deg = $vLat_Parts[0];
-                        $vLat_min = ("0." . $vLat_Parts[1]) * 60;
-                        $vLat_min_Parts = explode(".", $vLat_min);
-                        $vLat_min = $vLat_min_Parts[0];
-                        $vLat_sec = ("." . $vLat_min_Parts[1]) * 60;
+                        if ((int)$vLat != 0) {
+                            $vLatSign = substr($vLat, 0,1);
+                            $vLat = substr($vLat, 1) / 60;
+                            $vLat_Parts = explode(".", $vLat);
+                            $vLat_deg = $vLat_Parts[0];
+                            $vLat_min = ("0." . ($vLat_Parts[1]??0)) * 60;
+                            $vLat_min_Parts = explode(".", $vLat_min);
+                            $vLat_min = $vLat_min_Parts[0];
+                            $vLat_sec = ("." . ($vLat_min_Parts[1]??0)) * 60;
 
-                        $vLat = $vLatSign . $vLat;
+                            $vLat = $vLatSign . $vLat;
 
-                        // lon
-                        $vLon = $vDataRow[3];
-                        $vLonSign = substr($vLon, 0,1);
-                        $vLon = substr($vLon, 1) / 60;
-                        $vLon_Parts = explode(".", $vLon);
-                        $vLon_deg = $vLon_Parts[0];
-                        $vLon_min = ("0." . $vLon_Parts[1]) * 60;
-                        $vLon_min_Parts = explode(".", $vLon_min);
-                        $vLon_min = $vLon_min_Parts[0];
-                        $vLon_sec = ("." . $vLon_min_Parts[1]) * 60;
+                            // lon
+                            $vLon = $vDataRow[3];
+                            $vLonSign = substr($vLon, 0,1);
+                            $vLon = substr($vLon, 1) / 60;
+                            $vLon_Parts = explode(".", $vLon);
+                            $vLon_deg = $vLon_Parts[0];
+                            $vLon_min = ("0." . ($vLon_Parts[1]??0)) * 60;
+                            $vLon_min_Parts = explode(".", $vLon_min);
+                            $vLon_min = $vLon_min_Parts[0];
+                            $vLon_sec = ("." . ($vLon_min_Parts[1]??00)) * 60;
 
-                        // $vLon = $vLonSign . $vLon;
+                            // $vLon = $vLonSign . $vLon;
 
-                        $vNewDataRow = "<trkpt lat=\"" . $vLat . "\" lon=\"" . $vLon . "\">\n";
+                            $vNewDataRow = "<trkpt lat=\"" . $vLat . "\" lon=\"" . $vLon . "\">\n";
 
-                        // Sat
-                        $vNewDataRow .= "   <sat>" . (int)$vDataRow[0] . "</sat>" . "\n";
+                            // Sat
+                            $vNewDataRow .= "   <sat>" . (int)$vDataRow[0] . "</sat>" . "\n";
 
-                        // Height
-                        $vNewDataRow .= "   <ele>" . (int)$vDataRow[6] . "</ele>" . "\n";
+                            // Height
+                            $vNewDataRow .= "   <ele>" . (int)$vDataRow[6] . "</ele>" . "\n";
 
-                        // Time
-                        $vRowTimeStr = $vDataRow[1];
-                        $vRowTimeHH = substr($vRowTimeStr, 0,2);
-                        $vRowTimeMM = substr($vRowTimeStr, 2,2);
-                        $vRowTimeSS = substr($vRowTimeStr, 4,2);
-                        $vRowTimeMI = substr($vRowTimeStr, 7,2);
-                        $vRowTime = $vRowTimeHH . ":" . $vRowTimeMM . ":" . $vRowTimeSS . "." . $vRowTimeMI;
-                        $vNewDataRow .= "   <time>" . $vFileDate . "T" .  $vRowTime . "Z</time>\n";
+                            // Time
+                            $vRowTimeStr = $vDataRow[1];
+                            $vRowTimeHH = substr($vRowTimeStr, 0,2);
+                            $vRowTimeMM = substr($vRowTimeStr, 2,2);
+                            $vRowTimeSS = substr($vRowTimeStr, 4,2);
+                            $vRowTimeMI = substr($vRowTimeStr, 7,2);
+                            $vRowTime = $vRowTimeHH . ":" . $vRowTimeMM . ":" . $vRowTimeSS . "." . $vRowTimeMI;
+                            $vNewDataRow .= "   <time>" . $vFileDate . "T" .  $vRowTime . "Z</time>\n";
 
-                        // Extensions
-                        $vNewDataRow .= "   <extensions>" . "\n";
-                        $vNewDataRow .= "       <gpxtpx:TrackPointExtension>" . "\n";
+                            // Extensions
+                            $vNewDataRow .= "   <extensions>" . "\n";
+                            $vNewDataRow .= "       <gpxtpx:TrackPointExtension>" . "\n";
 
-                        // Speed
-                        $vNewDataRow .= "           <gpxtpx:speed>" . (int)$vDataRow[4] . "</gpxtpx:speed>\n";
+                            // Speed
+                            $vNewDataRow .= "           <gpxtpx:speed>" . (int)$vDataRow[4] . "</gpxtpx:speed>\n";
 
-                        // Course
-                        $vNewDataRow .= "           <gpxtpx:course>" . (int)$vDataRow[5] . "</gpxtpx:course>\n";
+                            // Course
+                            $vNewDataRow .= "           <gpxtpx:course>" . (int)$vDataRow[5] . "</gpxtpx:course>\n";
 
-                        $vNewDataRow .= "       </gpxtpx:TrackPointExtension>" . "\n";
-                        $vNewDataRow .= "   </extensions>" . "\n";
-                        $vNewDataRow .= "</trkpt>\n";
-                        $vNewData .= $vNewDataRow;
+                            $vNewDataRow .= "       </gpxtpx:TrackPointExtension>" . "\n";
+                            $vNewDataRow .= "   </extensions>" . "\n";
+                            $vNewDataRow .= "</trkpt>\n";
+                            $vNewData .= $vNewDataRow;
+                        } // latitude was captured
                     } // no empty row
                 }
 
@@ -143,15 +145,10 @@ class DataController extends Controller
 
                 break;
         }
-// dd(strlen($vNewData));
-        $vNewFileName = 'converted-' . strtolower(Str::random(5)) . '.gpx';
-
+        $vNewFileName = 'converted-' . strtolower($vUploadedFileName) . '-' . strtolower(Str::random(5)) . '.gpx';
         return response()->streamDownload(function () use ($vNewData) {
             echo $vNewData;
         }, $vNewFileName);
-
-        // return view('data.show')->with('newdata', $vNewData);
-
     }
 
     /**
