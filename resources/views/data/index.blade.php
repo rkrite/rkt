@@ -23,7 +23,7 @@
             <label for="datatype">Choose a data format:</label>
             <select name="datatype" id="datatype">
                 <option value="">select...</option>
-                <option value="gpx">GPX</option>
+                <option value="gpx" selected>GPX</option>
                 <option value="kml">KML</option>
             </select>
         </div>
