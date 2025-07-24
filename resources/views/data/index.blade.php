@@ -1,20 +1,4 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>VBox Data Converter</title>
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-        <style type="text/tailwindcss">
-          @theme {
-            --color-greyish: #888;
-            --color-lightgrey: #ccc;
-            --color-blueish: #257;
-            --color-redish: #725;
-          }
-        </style>
-    </head>
-
+@include('layouts.head')
     <body class="m-5 text-blueish">
         <h1 class="text-2xl font-bold">VBox Data Converter</h1>
 
@@ -45,13 +29,14 @@
                     <button type="reset" alt="Clear the form" class="text-sm/6 pl-2 pr-2 pt-1 pb-1 rounded-md outline-1 outline-redish font-semibold text-greyish focus:outline-2 hover:bg-lightgrey">Cancel</button>
                     <button type="submit" class="text-sm/6 pl-2 pr-2 pt-1 pb-1 rounded-md outline-1 outline-redish font-semibold text-blueish focus:outline-2 hover:bg-lightgrey">Submit</button>
                 </div>
-
                 @if (isset($newdata))
                     <div>
                         <pre>{{ $newdata }}</pre>
                     </div>
                 @endif
+
             </div>
         </form>
+@include('layouts.footer')
     </body>
-</html>
+@include('layouts.foot')
