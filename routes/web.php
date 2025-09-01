@@ -13,5 +13,5 @@ Route::get('/pi', function () {
 
 Route::get('/', 'App\Http\Controllers\DataController@index')->name('data.index');
 Route::post('/convert', 'App\Http\Controllers\DataController@convert')->name('data.convert');
-// Route::get('/clear', 'App\Http\Controllers\DataController@clear')->name('data.clear');
+Route::get('/clear', 'App\Http\Controllers\DataController@clear')->name('data.clear');
 

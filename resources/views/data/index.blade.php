@@ -1,13 +1,27 @@
 @include('layouts.head')
     <body class="m-5 text-blueish">
-        <h1 class="text-2xl font-bold">VBox Data Converter</h1>
+        <h1 class="text-2xl font-bold">Data Converter</h1>
 
         <form method="POST" enctype="multipart/form-data" action="{{ route('data.convert')  }}">
             @csrf
             <div class="mt-2">
-                <p class="mt-3">Convert raw VBox ".vbo" files into ".gpx" data files.</p>
+                <p class="mt-3">Convert...
+                    <ul class="ml-5">
+                        <li>raw VBox ".vbo" files into ".gpx" data files.</li>
+                        <li>raw DJI Flight Log ".json" files into ".gpx" data files.</li>
+                    </ul>
+                </p>
 
                 <div class="mt-10">
+
+                    <label for="datasourcetype" class="text-sm/6">Choose a data source type</label>
+                    <div class="mt-2 mb-7">
+                        <select id="datasourcetype" name="datasourcetype" autocomplete="datasourcetype-name" class="w-full appearance-none rounded-md py-1.5 pl-3 text-redish outline-1 outline-redish focus:outline-2 sm:text-sm/6">
+                            <option value="">select...</option>
+                            <option value="vbox" selected>VBox</option>
+                            <option value="djilog">DJI Flight Log</option>
+                        </select>
+                    </div>
 
                     <label for="datafile" class="text-sm/6">Choose a VBox data file</label>
                     <div class="mt-2 mb-5">
