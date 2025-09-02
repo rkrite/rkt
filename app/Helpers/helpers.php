@@ -6,6 +6,8 @@
     use Carbon\Carbon;
     use Illuminate\Support\Str;
 
+    // =====================================
+    // =====================================
     if (!function_exists('GCSVFileToArray')){
         function GCSVFileToArray($file) {
 
@@ -42,6 +44,8 @@
         }
     } // GCSVFileToArray
 
+    // =====================================
+    // =====================================
     if (!function_exists('GConvertVBoxDataFile')){
         function GConvertVBoxDataFile(Request $request) {
 
@@ -68,12 +72,10 @@
             switch ($vFormatType) {
                 case 'gpx':
                 default:
-                    $vNewDataRow = "";
-                    $vNewData = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n";
-                    $vNewData .= "<gpx version=\"1.1\" creator=\"GPS Visualizer https://www.gpsvisualizer.com/\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v2 http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd\" xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v2\">\n";
-                    $vNewData .= " <trk>\n";
-                    $vNewData .= "     <name>VBox Data Conversion - " . $vUploadedFileName . "</name>\n";
-                    $vNewData .= "     <trkseg>\n";
+                    $vNewData = "";
+                    $vHead = [];
+                    $vHead['name'] = "VBox Data Conversion - " . $vUploadedFileName;
+                    $vNewData .= GCreateGPXRecord ($vHead, 'head');
 
                     $vRowNum = 0;
                     foreach ($vDataArray as $vDataString) {
@@ -106,16 +108,6 @@
                                 $vLon_min = $vLon_min_Parts[0];
                                 $vLon_sec = ("." . ($vLon_min_Parts[1]??00)) * 60;
 
-                                // $vLon = $vLonSign . $vLon;
-
-                                $vNewDataRow = "<trkpt lat=\"" . $vLat . "\" lon=\"" . $vLon . "\">\n";
-
-                                // Sat
-                                $vNewDataRow .= "   <sat>" . (int)$vDataRow[0] . "</sat>" . "\n";
-
-                                // Height
-                                $vNewDataRow .= "   <ele>" . (int)$vDataRow[6] . "</ele>" . "\n";
-
                                 // Time
                                 $vRowTimeStr = $vDataRow[1];
                                 $vRowTimeHH = substr($vRowTimeStr, 0,2);
@@ -123,29 +115,22 @@
                                 $vRowTimeSS = substr($vRowTimeStr, 4,2);
                                 $vRowTimeMI = substr($vRowTimeStr, 7,2);
                                 $vRowTime = $vRowTimeHH . ":" . $vRowTimeMM . ":" . $vRowTimeSS . "." . $vRowTimeMI;
-                                $vNewDataRow .= "   <time>" . $vFileDate . "T" .  $vRowTime . "Z</time>\n";
 
-                                // Extensions
-                                $vNewDataRow .= "   <extensions>" . "\n";
-                                $vNewDataRow .= "       <gpxtpx:TrackPointExtension>" . "\n";
+                                $vRowData = [];
+                                $vRowData['lat'] = $vLat;
+                                $vRowData['lon'] = $vLon;
+                                $vRowData['sat'] = (int)$vDataRow[0];
+                                $vRowData['ele'] = (int)$vDataRow[6];
+                                $vRowData['time'] = $vFileDate . "T" .  $vRowTime . "Z";
+                                $vRowData['speed'] = (int)$vDataRow[4];
+                                $vRowData['course'] = (int)$vDataRow[5];
+                                $vNewData .= GCreateGPXRecord ($vRowData, 'row');
 
-                                // Speed
-                                $vNewDataRow .= "           <gpxtpx:speed>" . (int)$vDataRow[4] . "</gpxtpx:speed>\n";
-
-                                // Course
-                                $vNewDataRow .= "           <gpxtpx:course>" . (int)$vDataRow[5] . "</gpxtpx:course>\n";
-
-                                $vNewDataRow .= "       </gpxtpx:TrackPointExtension>" . "\n";
-                                $vNewDataRow .= "   </extensions>" . "\n";
-                                $vNewDataRow .= "</trkpt>\n";
-                                $vNewData .= $vNewDataRow;
                             } // latitude was captured
                         } // no empty row
                     }
 
-                    $vNewData .= "     </trkseg>\n";
-                    $vNewData .= " </trk>\n";
-                    $vNewData .= "</gpx>\n";
+                    $vNewData .= GCreateGPXRecord ('', 'foot');
 
                     break;
             }
@@ -175,12 +160,11 @@
             switch ($vFormatType) {
                 case 'gpx':
                 default:
-                    $vNewDataRow = "";
-                    $vNewData = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n";
-                    $vNewData .= "<gpx version=\"1.1\" creator=\"GPS Visualizer https://www.gpsvisualizer.com/\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v2 http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd\" xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v2\">\n";
-                    $vNewData .= " <trk>\n";
-                    $vNewData .= "     <name>DJI Log Data Conversion - " . $vUploadedFileName . "</name>\n";
-                    $vNewData .= "     <trkseg>\n";
+                    $vNewData = "";
+
+                    $vHead = [];
+                    $vHead['name'] = "DJI Log Data Conversion - " . $vUploadedFileName;
+                    $vNewData .= GCreateGPXRecord ($vHead, 'head');
 
                     $vDataFrames = $vDataArray['frames']??[];
                     $vRowNum = 0;
@@ -203,39 +187,21 @@
                             }
                             // lat
                             if ((int)$vLat != 0) {
-                                $vNewDataRow = "<trkpt lat=\"" . $vLat . "\" lon=\"" . $vLon . "\">\n";
 
-                                // Sat
-                                $vNewDataRow .= "   <sat>" . (int)$vSatNum . "</sat>" . "\n";
-
-                                // Height
-                                $vNewDataRow .= "   <ele>" . (int)$vAltitude . "</ele>" . "\n";
-
-                                // Time
-                                $vNewDataRow .= "   <time>" . $vFrameDateTime . "</time>\n";
-
-                                // Extensions
-                                $vNewDataRow .= "   <extensions>" . "\n";
-                                $vNewDataRow .= "       <gpxtpx:TrackPointExtension>" . "\n";
-
-                                // Speed
-                                $vNewDataRow .= "           <gpxtpx:speed>" . (int)$vSpeed . "</gpxtpx:speed>\n";
-
-                                // Course
-                                $vNewDataRow .= "           <gpxtpx:course>" . (int)$vYaw . "</gpxtpx:course>\n";
-
-                                $vNewDataRow .= "       </gpxtpx:TrackPointExtension>" . "\n";
-                                $vNewDataRow .= "   </extensions>" . "\n";
-                                $vNewDataRow .= "</trkpt>\n";
-                                $vNewData .= $vNewDataRow;
+                                $vRowData = [];
+                                $vRowData['lat'] = $vLat;
+                                $vRowData['lon'] = $vLon;
+                                $vRowData['sat'] = $vSatNum;
+                                $vRowData['ele'] = $vAltitude;
+                                $vRowData['time'] = $vFrameDateTime;
+                                $vRowData['speed'] = $vSpeed;
+                                $vRowData['course'] = $vYaw;
+                                $vNewData .= GCreateGPXRecord ($vRowData, 'row');
                             } // latitude was captured
                         } // no empty row
                     }
 
-                    $vNewData .= "     </trkseg>\n";
-                    $vNewData .= " </trk>\n";
-                    $vNewData .= "</gpx>\n";
-
+                    $vNewData .= GCreateGPXRecord ('', 'foot');
                     break;
             }
             $vNewFileName = 'converted-' . strtolower($vUploadedFileName) . '-' . strtolower(Str::random(5)) . '.gpx';
@@ -244,3 +210,59 @@
             }, $vNewFileName);
         }
     } // GConvertDJILogDataFile
+
+    // =====================================
+    // =====================================
+    if (!function_exists('GCreateGPXRecord')){
+        function GCreateGPXRecord($pData, $pType) {
+            $vGPXData = "";
+            switch ($pType) {
+                case 'head':
+                    $vGPXData = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n";
+                    $vGPXData .= "<gpx version=\"1.1\" creator=\"GPS Visualizer https://www.gpsvisualizer.com/\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v2 http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd\" xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v2\">\n";
+                    $vGPXData .= " <trk>\n";
+                    $vGPXData .= "     <name>" . ($pData['name']??'') . "</name>\n";
+                    $vGPXData .= "     <trkseg>\n";
+                    break;
+                case 'foot':
+                    $vGPXData .= "     </trkseg>\n";
+                    $vGPXData .= " </trk>\n";
+                    $vGPXData .= "</gpx>\n";
+                    break;
+
+                case 'row':
+                default:
+
+
+                    $vGPXData = "<trkpt lat=\"" . ($pData['lat']??'') . "\" lon=\"" . ($pData['lon']??'') . "\">\n";
+
+                    // Sat
+                    $vGPXData .= "   <sat>" . ($pData['sat']??'') . "</sat>" . "\n";
+
+                    // Height
+                    $vGPXData .= "   <ele>" . ($pData['ele']??'') . "</ele>" . "\n";
+
+                    // Time
+                    $vGPXData .= "   <time>" . ($pData['time']??'') . "</time>\n";
+
+                    // Extensions
+                    $vGPXData .= "   <extensions>" . "\n";
+                    $vGPXData .= "       <gpxtpx:TrackPointExtension>" . "\n";
+
+                    // Speed
+                    $vGPXData .= "           <gpxtpx:speed>" . ($pData['speed']??'') . "</gpxtpx:speed>\n";
+
+                    // Course
+                    $vGPXData .= "           <gpxtpx:course>" . ($pData['course']??'') . "</gpxtpx:course>\n";
+
+                    $vGPXData .= "       </gpxtpx:TrackPointExtension>" . "\n";
+                    $vGPXData .= "   </extensions>" . "\n";
+                    $vGPXData .= "</trkpt>\n";
+
+                    break;
+            }
+
+            return $vGPXData;
+
+        }
+    } // GCreateGPXRecord

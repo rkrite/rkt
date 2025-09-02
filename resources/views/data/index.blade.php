@@ -35,7 +35,7 @@
                         <select id="datatype" name="datatype" autocomplete="datatype-name" class="w-full appearance-none rounded-md py-1.5 pl-3 text-redish outline-1 outline-redish focus:outline-2 sm:text-sm/6">
                             <option value="">select...</option>
                             <option value="gpx" selected>GPX</option>
-                            <option value="kml">KML</option>
+                            {{-- <option value="kml">KML</option> --}}
                         </select>
                     </div>
                 </div>
