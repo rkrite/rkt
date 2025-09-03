@@ -22,8 +22,15 @@
                             <option value="djilog">DJI Flight Log</option>
                         </select>
                     </div>
-
-                    <label for="datafile" class="text-sm/6">Choose a VBox data file</label>
+{{--
+                    <label for="djiapikey" class="text-sm/6">DJI API Key</label>
+                    <div class="mt-2 mb-7">
+                        <div class="rounded-md pl-3 outline-1 outline-redish focus-within:outline-2">
+                            <input id="djiapikey" type="text" name="djiapikey" placeholder="API Key from DJI" class="py-1.5 pl-1 text-base text-redish placeholder:text-redish focus:outline-none sm:text-sm/6" />
+                        </div>
+                    </div>
+ --}}
+                    <label for="datafile" class="text-sm/6">Choose a data file</label>
                     <div class="mt-2 mb-5">
                         <div class="rounded-md pl-3 outline-1 outline-redish focus-within:outline-2">
                             <input id="datafile" type="file" name="datafile" placeholder="datafile" class="py-1.5 pl-1 text-base text-redish placeholder:text-redish focus:outline-none sm:text-sm/6" />

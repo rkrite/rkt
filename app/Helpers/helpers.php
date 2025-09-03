@@ -3,6 +3,7 @@
     use Illuminate\Http\Request;
     use Illuminate\Http\File;
     use Illuminate\Support\Facades\Storage;
+    use Illuminate\Support\Facades\Process;
     use Carbon\Carbon;
     use Illuminate\Support\Str;
 
@@ -59,8 +60,10 @@
             $vDataStartTagLen = strlen($vDataStartTag) + 1;
 
             $vFormatType = $request->input('datatype');
-            $vInitialContents = file_get_contents($request->file('datafile')->getRealPath());
             $vUploadedFileName = $request->file('datafile')->getClientOriginalName();
+            $vUploadedRealPath = $request->file('datafile')->getRealPath();
+
+            $vInitialContents = file_get_contents($vUploadedRealPath);
             $vInitialContents = str_replace("\r\n", "\n", $vInitialContents);
             $vInitialContents = str_replace(" \n", "\n", $vInitialContents);
             $vDataStartPos = strpos($vInitialContents, $vDataStartTag) + $vDataStartTagLen;
@@ -150,10 +153,32 @@
                 'datafile' => 'required',
                 'datatype' => 'required',
             ]);
-
+            $vInitialContents = '';
+            $vNewFile = '';
+            $vConvertedRaw = false;
             $vFormatType = $request->input('datatype');
-            $vInitialContents = file_get_contents($request->file('datafile')->getRealPath());
-            $vUploadedFileName = $request->file('datafile')->getClientOriginalName();
+            $vUploadedFile = $request->file('datafile');
+            $vUploadedFileName = $vUploadedFile->getClientOriginalName();
+            $vUploadedRealPath = $vUploadedFile->getRealPath();
+            $vFilePath = $vUploadedFile->store('datafiles'); // Store in 'storage/app/private/datafiles
+            $vFullFilePath = Storage::disk('datafiles')->path($vFilePath);
+
+            $vApiKey = $request->input('djiapikey');
+            if (!empty($vApiKey)){
+                $vRnd = Str::random(4);
+                $vFullNewFile = $vFullFilePath . ".json";
+                $vNewFile = $vFilePath . ".json";
+                $vCommand = "./dji-log --api-key \"" . $vApiKey . "\" \"" . $vFullFilePath . "\" > " . $vFullNewFile;
+                $vResult = Process::run($vCommand);
+                if ($vResult->successful()){
+                    $vConvertedRaw = true;
+                    $vInitialContents = file_get_contents($vFullNewFile);
+                } else {
+                    $vInitialContents = file_get_contents($vUploadedRealPath);
+                }
+            } else {
+                $vInitialContents = file_get_contents($vUploadedRealPath);
+            }
 
             $vDataArray = json_decode($vInitialContents, true);
 
@@ -205,6 +230,15 @@
                     break;
             }
             $vNewFileName = 'converted-' . strtolower($vUploadedFileName) . '-' . strtolower(Str::random(5)) . '.gpx';
+
+            if (Storage::disk('datafiles')->exists($vFilePath)) {
+                Storage::disk('datafiles')->delete($vFilePath);
+            }
+            if ($vConvertedRaw){
+                if (Storage::disk('datafiles')->exists($vNewFile)) {
+                    Storage::disk('datafiles')->delete($vNewFile);
+                }
+            }
             return response()->streamDownload(function () use ($vNewData) {
                 echo $vNewData;
             }, $vNewFileName);
@@ -232,7 +266,6 @@
 
                 case 'row':
                 default:
-
 
                     $vGPXData = "<trkpt lat=\"" . ($pData['lat']??'') . "\" lon=\"" . ($pData['lon']??'') . "\">\n";
 
