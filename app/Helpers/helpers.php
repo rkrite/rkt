@@ -144,7 +144,6 @@
         }
     } // GConvertVBoxDataFile
 
-
     if (!function_exists('GConvertDJILogDataFile')){
         function GConvertDJILogDataFile(Request $request) {
 
@@ -253,44 +252,44 @@
             switch ($pType) {
                 case 'head':
                     $vGPXData = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n";
-                    $vGPXData .= "<gpx version=\"1.1\" creator=\"GPS Visualizer https://www.gpsvisualizer.com/\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v2 http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd\" xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v2\">\n";
-                    $vGPXData .= " <trk>\n";
-                    $vGPXData .= "     <name>" . ($pData['name']??'') . "</name>\n";
-                    $vGPXData .= "     <trkseg>\n";
+                    $vGPXData .= "<gpx version=\"1.1\" creator=\"Disco Octopus https://discooctopus.com/\"\n xmlns=\"http://www.topografix.com/GPX/1/1\"\n xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v2 http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd\"\n xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v2\">\n";
+                    $vGPXData .= "    <trk>\n";
+                    $vGPXData .= "        <name>" . ($pData['name']??'') . "</name>\n";
+                    $vGPXData .= "        <trkseg>\n";
                     break;
                 case 'foot':
-                    $vGPXData .= "     </trkseg>\n";
-                    $vGPXData .= " </trk>\n";
+                    $vGPXData .= "        </trkseg>\n";
+                    $vGPXData .= "    </trk>\n";
                     $vGPXData .= "</gpx>\n";
                     break;
 
                 case 'row':
                 default:
 
-                    $vGPXData = "<trkpt lat=\"" . ($pData['lat']??'') . "\" lon=\"" . ($pData['lon']??'') . "\">\n";
+                    $vGPXData = "            <trkpt lon=\"" . ($pData['lon']??'') . "\" lat=\"" . ($pData['lat']??'') . "\">\n";
 
                     // Sat
-                    $vGPXData .= "   <sat>" . ($pData['sat']??'') . "</sat>" . "\n";
+                    $vGPXData .= "                <sat>" . ($pData['sat']??'') . "</sat>" . "\n";
 
                     // Height
-                    $vGPXData .= "   <ele>" . ($pData['ele']??'') . "</ele>" . "\n";
+                    $vGPXData .= "                <ele>" . ($pData['ele']??'') . "</ele>" . "\n";
 
                     // Time
-                    $vGPXData .= "   <time>" . ($pData['time']??'') . "</time>\n";
+                    $vGPXData .= "                <time>" . ($pData['time']??'') . "</time>\n";
 
                     // Extensions
-                    $vGPXData .= "   <extensions>" . "\n";
-                    $vGPXData .= "       <gpxtpx:TrackPointExtension>" . "\n";
+                    $vGPXData .= "                <extensions>" . "\n";
+                    $vGPXData .= "                    <gpxtpx:TrackPointExtension>" . "\n";
 
                     // Speed
-                    $vGPXData .= "           <gpxtpx:speed>" . ($pData['speed']??'') . "</gpxtpx:speed>\n";
+                    $vGPXData .= "                        <gpxtpx:speed>" . ($pData['speed']??'') . "</gpxtpx:speed>\n";
 
                     // Course
-                    $vGPXData .= "           <gpxtpx:course>" . ($pData['course']??'') . "</gpxtpx:course>\n";
+                    $vGPXData .= "                        <gpxtpx:course>" . ($pData['course']??'') . "</gpxtpx:course>\n";
 
-                    $vGPXData .= "       </gpxtpx:TrackPointExtension>" . "\n";
-                    $vGPXData .= "   </extensions>" . "\n";
-                    $vGPXData .= "</trkpt>\n";
+                    $vGPXData .= "                    </gpxtpx:TrackPointExtension>" . "\n";
+                    $vGPXData .= "                </extensions>" . "\n";
+                    $vGPXData .= "            </trkpt>\n";
 
                     break;
             }
