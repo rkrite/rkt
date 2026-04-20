@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // });
 
-Route::get('/pi', function () {
-    phpinfo();
-});
+// Route::get('/pi', function () {
+//     phpinfo();
+// });
 
 
 Route::get('/', 'App\Http\Controllers\DataController@index')->name('data.index');
