@@ -197,8 +197,11 @@ if (!function_exists('GExtractVBoxRaces')) {
         try {
             // Increase timeout to 5 minutes (300 seconds) for large files
             $vResult = Process::timeout(900)->run($vCommand);
-            \Log::info('vxd.py output: ' . $vResult->output());
-            \Log::error('vxd.py error: ' . $vResult->errorOutput());
+            $vErrorMessage = $vResult->errorOutput();
+            if (!empty($vErrorMessage)) {
+                \Log::info('vxd.py output: ' . $vResult->output());
+                \Log::error('vxd.py error: ' . $vErrorMessage);
+            }
         } catch (\Exception $e) {
             \Log::error('vxd.py process failed: ' . $e->getMessage());
             $vResult = null;
