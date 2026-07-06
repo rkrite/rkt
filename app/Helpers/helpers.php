@@ -69,8 +69,19 @@
             $vDataStartPos = strpos($vInitialContents, $vDataStartTag) + $vDataStartTagLen;
             $vDataArray = explode("\n", substr($vInitialContents, $vDataStartPos));
 
-            $vFileDate = substr($vInitialContents, 16, 10);
-            $vFileDate = Carbon::createFromFormat('d/m/Y', $vFileDate)->format('Y-m-d');
+            $vFileDate = Carbon::now()->format('Y-m-d');
+            if (preg_match('/(?:File created on|date)\s*[:=]?\s*(\d{2}\/\d{2}\/\d{4})/i', $vInitialContents, $vMatches)) {
+                try {
+                    $vFileDate = Carbon::createFromFormat('d/m/Y', $vMatches[1])->format('Y-m-d');
+                } catch (\Exception $e) {
+                }
+            } else {
+                try {
+                    $vSubDate = substr($vInitialContents, 16, 10);
+                    $vFileDate = Carbon::createFromFormat('d/m/Y', $vSubDate)->format('Y-m-d');
+                } catch (\Exception $e) {
+                }
+            }
 
             switch ($vFormatType) {
                 case 'gpx':
@@ -116,7 +127,8 @@
                                 $vRowTimeHH = substr($vRowTimeStr, 0,2);
                                 $vRowTimeMM = substr($vRowTimeStr, 2,2);
                                 $vRowTimeSS = substr($vRowTimeStr, 4,2);
-                                $vRowTimeMI = substr($vRowTimeStr, 7,2);
+                                // Pad the centiseconds (2 digits) to milliseconds (3 digits) for Python compatibility
+                                $vRowTimeMI = str_pad(substr($vRowTimeStr, 7,2), 3, "0", STR_PAD_RIGHT);
                                 $vRowTime = $vRowTimeHH . ":" . $vRowTimeMM . ":" . $vRowTimeSS . "." . $vRowTimeMI;
 
                                 $vRowData = [];
@@ -138,11 +150,100 @@
                     break;
             }
             $vNewFileName = 'converted-' . strtolower($vUploadedFileName) . '-' . strtolower(Str::random(5)) . '.gpx';
+
+            // --- IRB Race Extraction ---
+            $vExtractRaces = $request->input('extract_races');
+            if ($vExtractRaces) {
+                return GExtractVBoxRaces($vNewData, $vUploadedFileName);
+            }
+
             return response()->streamDownload(function () use ($vNewData) {
                 echo $vNewData;
             }, $vNewFileName);
         }
     } // GConvertVBoxDataFile
+
+    // =====================================
+    // =====================================
+    if (!function_exists('GExtractVBoxRaces')){
+        function GExtractVBoxRaces($pGPXData, $pOriginalFileName) {
+
+            $request = request();
+            $vRealRacesOnly = $request->input('real_races_only');
+
+            // Write the full GPX to a temp file for vxd.py to process
+            $vRnd       = strtolower(Str::random(8));
+            $vTempDir   = storage_path('app/private/temp_files');
+            $vOutDir    = $vTempDir . '/vxd-out-' . $vRnd;   // dedicated output folder per run
+
+            $vTempGPXPath = $vTempDir . '/vbox-' . $vRnd . '.gpx';
+
+            // Ensure the output directory exists before calling vxd.py
+            @mkdir($vOutDir, 0755, true);
+            file_put_contents($vTempGPXPath, $pGPXData);
+
+            // Build the vxd.py command — pass the output dir explicitly
+            $vScriptPath = base_path('app/Scripts/vxd.py');
+            $vCommand    = 'python3 ' . escapeshellarg($vScriptPath)
+                         . ' ' . escapeshellarg($vTempGPXPath)
+                         . ' --output ' . escapeshellarg($vOutDir);
+            if ($vRealRacesOnly) {
+                $vCommand .= ' --real-races-only';
+            }
+
+            try {
+                // Increase timeout to 5 minutes (300 seconds) for large files
+                $vResult = Process::timeout(300)->run($vCommand);
+                \Log::info('vxd.py output: ' . $vResult->output());
+                \Log::error('vxd.py error: ' . $vResult->errorOutput());
+            } catch (\Exception $e) {
+                \Log::error('vxd.py process failed: ' . $e->getMessage());
+                $vResult = null;
+            }
+
+            // Collect all GPX files AND the summary CSV that vxd.py wrote
+            $vOutputFiles = array_merge(
+                glob($vOutDir . '/*.gpx') ?: [],
+                glob($vOutDir . '/summary.csv') ?: []
+            );
+
+            // We intentionally do not fall back to a raw .gpx if $vOutputFiles is empty.
+            // The user requested that if the option is checked, they always receive a .zip file
+            // containing at least the full GPX file.
+
+            // Bundle all output files into a zip
+            $vZipName = 'races-' . strtolower(pathinfo($pOriginalFileName, PATHINFO_FILENAME)) . '-' . $vRnd . '.zip';
+            $vZipPath = $vTempDir . '/' . $vZipName;
+
+            $vZip = new \ZipArchive();
+            $vZip->open($vZipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+            // Add the full converted GPX first
+            $vFullGPXName = 'full-' . strtolower(pathinfo($pOriginalFileName, PATHINFO_FILENAME)) . '.gpx';
+            $vZip->addFile($vTempGPXPath, $vFullGPXName);
+            // Add individual race tracks and summary CSV
+            foreach ($vOutputFiles as $vFile) {
+                $vZip->addFile($vFile, basename($vFile));
+            }
+            $vZip->close();
+
+
+            // Read zip into memory then clean up all temp files
+            $vZipContents = file_get_contents($vZipPath);
+            @unlink($vTempGPXPath);
+            @unlink($vZipPath);
+            foreach ($vOutputFiles as $vFile) {
+                @unlink($vFile);
+            }
+            @rmdir($vOutDir);
+
+            return response()->streamDownload(function () use ($vZipContents) {
+                echo $vZipContents;
+            }, $vZipName, [
+                'Content-Type' => 'application/zip',
+            ]);
+        }
+    } // GExtractVBoxRaces
+
 
     if (!function_exists('GConvertDJILogDataFile')){
         function GConvertDJILogDataFile(Request $request) {

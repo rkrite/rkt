@@ -57,6 +57,8 @@ Changes are synced to the production server via `sync.sh`. This script:
 2. Uses `lftp` to upload them to the configured host.
 3. Overwrites existing files on the remote server.
 
+**CRITICAL RULE FOR AI AGENTS**: **NEVER run `sync.sh` yourself**. Do not execute this script under any circumstances. Deployment is strictly a manual step performed by the human user.
+
 ## 8. Planned Updates
 - Support for raw DJI `.txt` files.
 - KML output format.

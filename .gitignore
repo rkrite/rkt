@@ -23,3 +23,10 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+race_*.gpx
+segment_*.gpx
+.rkt.txt*
+.sync.sh*
+rkt.txt
+output/
+scratch/

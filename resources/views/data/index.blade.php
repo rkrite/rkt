@@ -16,11 +16,28 @@
 
                     <label for="datasourcetype" class="text-sm/6">Choose a data source type</label>
                     <div class="mt-2 mb-7">
-                        <select id="datasourcetype" name="datasourcetype" autocomplete="datasourcetype-name" class="w-full appearance-none rounded-md py-1.5 pl-3 text-redish outline-1 outline-redish focus:outline-2 sm:text-sm/6">
+                        <select id="datasourcetype" name="datasourcetype" autocomplete="datasourcetype-name" class="w-full appearance-none rounded-md py-1.5 pl-3 text-redish outline-1 outline-redish focus:outline-2 sm:text-sm/6" onchange="rktToggleVBoxOptions(this.value)">
                             <option value="">select...</option>
                             <option value="vbox" selected>VBox</option>
                             <option value="djilog">DJI Flight Log</option>
                         </select>
+                    </div>
+
+                    {{-- VBox-only: IRB Race Extraction Options --}}
+                    <div id="vbox-race-options" class="mt-2 mb-7 pl-1">
+                        <p class="text-sm/6 mb-2 text-greyish">IRB Race Extraction</p>
+                        <div class="flex items-center gap-x-2 mb-2">
+                            <input id="extract_races" type="checkbox" name="extract_races" value="1"
+                                class="rounded border-redish text-redish focus:ring-redish cursor-pointer"
+                                onchange="rktToggleRealRacesOnly(this.checked)" />
+                            <label for="extract_races" class="text-sm/6 cursor-pointer">Extract Individual Races?</label>
+                        </div>
+                        <div class="flex items-center gap-x-2">
+                            <input id="real_races_only" type="checkbox" name="real_races_only" value="1"
+                                class="rounded border-redish text-redish focus:ring-redish cursor-pointer disabled:opacity-40"
+                                disabled />
+                            <label for="real_races_only" class="text-sm/6 cursor-pointer opacity-40" id="real_races_only_label">Only extract identified IRB tracks?</label>
+                        </div>
                     </div>
 {{--
                     <label for="djiapikey" class="text-sm/6">DJI API Key</label>
@@ -60,4 +77,29 @@
         </form>
 @include('layouts.footer')
     </body>
+<script>
+    function rktToggleVBoxOptions(value) {
+        var vPanel = document.getElementById('vbox-race-options');
+        if (value === 'vbox') {
+            vPanel.style.display = '';
+        } else {
+            vPanel.style.display = 'none';
+            document.getElementById('extract_races').checked = false;
+            rktToggleRealRacesOnly(false);
+        }
+    }
+
+    function rktToggleRealRacesOnly(extractChecked) {
+        var vCheckbox = document.getElementById('real_races_only');
+        var vLabel    = document.getElementById('real_races_only_label');
+        vCheckbox.disabled = !extractChecked;
+        vLabel.style.opacity = extractChecked ? '1' : '0.4';
+        if (!extractChecked) {
+            vCheckbox.checked = false;
+        }
+    }
+
+    // Run on page load to reflect default selected option
+    rktToggleVBoxOptions(document.getElementById('datasourcetype').value);
+</script>
 @include('layouts.foot')
